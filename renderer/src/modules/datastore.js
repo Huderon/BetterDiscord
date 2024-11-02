@@ -16,6 +16,10 @@ const releaseChannel = window?.DiscordNative?.app?.getReleaseChannel?.() ?? "sta
 //             -> settings.json
 //             -> plugins.json
 //             -> themes.json
+//             -> misc.json
+//             -> custom.css
+//             -> plugin_data
+//                 -> [pluginName].config.json
 
 export default new class DataStore {
     constructor() {
@@ -38,6 +42,7 @@ export default new class DataStore {
         if (!newStorageExists) fs.mkdirSync(this.baseFolder);
 
         if (!fs.existsSync(this.dataFolder)) fs.mkdirSync(this.dataFolder);
+        if (!fs.existsSync(this.pluginDataFolder)) fs.mkdirSync(this.pluginDataFolder);
         if (!fs.existsSync(this.customCSS)) fs.writeFileSync(this.customCSS, "");
 
         const dataFiles = fs.readdirSync(this.dataFolder).filter(f => !fs.statSync(path.resolve(this.dataFolder, f)).isDirectory() && f.endsWith(".json"));
@@ -54,7 +59,8 @@ export default new class DataStore {
     get customCSS() {return this._customCSS || (this._customCSS = path.resolve(this.dataFolder, "custom.css"));}
     get baseFolder() {return this._baseFolder || (this._baseFolder = path.resolve(Config.dataPath, "data"));}
     get dataFolder() {return this._dataFolder || (this._dataFolder = path.resolve(this.baseFolder, `${releaseChannel}`));}
-    getPluginFile(pluginName) {return path.resolve(Config.dataPath, "plugins", pluginName + ".config.json");}
+    get pluginDataFolder() {return this._pluginDataFolder || (this._pluginDataFolder = path.resolve(this.dataFolder, "plugin_data"));}
+    getPluginFile(pluginName) {return path.resolve(this.dataFolder, "plugin_data", pluginName + ".config.json");}
 
 
     _getFile(key) {
