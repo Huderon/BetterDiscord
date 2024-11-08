@@ -2,7 +2,6 @@ import fs from "fs";
 import path from "path";
 
 import Logger from "@common/logger";
-import Toasts from "@ui/toasts";
 
 import Config from "@data/config";
 
@@ -19,8 +18,8 @@ const releaseChannel = window?.DiscordNative?.app?.getReleaseChannel?.() ?? "sta
 //             -> themes.json
 //             -> misc.json
 //             -> custom.css
-//             -> plugin_data
-//                 -> [pluginName].config.json
+//         -> plugins
+//             -> [pluginName].config.json
 
 export default new class DataStore {
     constructor() {
@@ -60,7 +59,7 @@ export default new class DataStore {
     get customCSS() {return this._customCSS || (this._customCSS = path.resolve(this.dataFolder, "custom.css"));}
     get baseFolder() {return this._baseFolder || (this._baseFolder = path.resolve(Config.dataPath, "data"));}
     get dataFolder() {return this._dataFolder || (this._dataFolder = path.resolve(this.baseFolder, `${releaseChannel}`));}
-    get pluginDataFolder() {return this._pluginDataFolder || (this._pluginDataFolder = path.resolve(this.dataFolder, "plugin_data"));}
+    get pluginDataFolder() {return this._pluginDataFolder || (this._pluginDataFolder = path.resolve(this.baseFolder, "plugins"));}
     getPluginFile(pluginName) {return path.resolve(this.pluginDataFolder, pluginName + ".config.json");}
 
 
@@ -140,23 +139,19 @@ export default new class DataStore {
             const files = fs.readdirSync(this.pluginFolder)
                 .filter(file => file.endsWith(".config.json"));
             if (files.length) {
-                Toasts.info("Transferring config files");
                 files.forEach(file => {
                     const oldPath = path.join(this.pluginFolder, file);
                     const newPath = path.join(this.pluginDataFolder, file);
                     try {
                         fs.renameSync(oldPath, newPath);
-                    } catch (e) {
-                        Toasts.error(`Failed to transfer ${file}`);
+                    }
+                    catch (e) {
                         Logger.stacktrace("DataStore", `Failed to transfer ${file}`, e);
                     }
                 });
-                Toasts.info("Transfer complete");
-                return;
             }
-            Toasts.info("No configs to transfer");
-        } catch (e) {
-            Toasts.error("Transfer failed");
+        }
+        catch (e) {
             Logger.stacktrace("DataStore", "Failed to transfer config files", e);
         }
     }
